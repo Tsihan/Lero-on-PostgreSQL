@@ -146,14 +146,24 @@ class LeroHelper():
         os.system("sync")
         return reply_json['latency']
 
+def read_queries_from_folder(folder_path):
+    queries = []
+    for file_name in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, file_name)
+        if os.path.isfile(file_path) and file_name.endswith('.sql'):
+            with open(file_path, 'r') as f:
+                query = f.read().strip()
+                queries.append((file_name, query))
+    return queries
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Model training helper")
-    parser.add_argument("--query_path",
-                        metavar="PATH",
-                        help="Load the queries")
-    parser.add_argument("--test_query_path",
-                        metavar="PATH",
-                        help="Load the test queries")
+    parser.add_argument("--query_folder",
+                        metavar="FOLDER",
+                        help="Load the training queries from folder")
+    parser.add_argument("--test_query_folder",
+                        metavar="FOLDER",
+                        help="Load the test queries from folder")
     parser.add_argument("--algo", type=str)
     parser.add_argument("--query_num_per_chunk", type=int)
     parser.add_argument("--output_query_latency_file", metavar="PATH")
@@ -162,13 +172,9 @@ if __name__ == "__main__":
     parser.add_argument("--topK", type=int)
     args = parser.parse_args()
 
-    query_path = args.query_path
-    print("Load queries from ", query_path)
-    queries = []
-    with open(query_path, 'r') as f:
-        for line in f.readlines():
-            arr = line.strip().split(SEP)
-            queries.append((arr[0], arr[1]))
+    query_folder = args.query_folder
+    print("Load queries from folder:", query_folder)
+    queries = read_queries_from_folder(query_folder)
     print("Read", len(queries), "training queries.")
 
     output_query_latency_file = args.output_query_latency_file
@@ -194,11 +200,8 @@ if __name__ == "__main__":
         helper.start(pool_num)
     else:
         test_queries = []
-        if args.test_query_path is not None:
-            with open(args.test_query_path, 'r') as f:
-                for line in f.readlines():
-                    arr = line.strip().split(SEP)
-                    test_queries.append((arr[0], arr[1]))
+        if args.test_query_folder is not None:
+            test_queries = read_queries_from_folder(args.test_query_folder)
         print("Read", len(test_queries), "test queries.")
 
         query_num_per_chunk = args.query_num_per_chunk
