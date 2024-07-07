@@ -5,6 +5,32 @@ import os
 import socket
 from config import *
 from multiprocessing import Pool
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+def send_email(subject, body, to_email):
+    from_email = "xxx@qq.com"
+    password = "xxx"
+
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        server = smtplib.SMTP('smtp.qq.com', 587)
+        server.starttls()
+        server.login(from_email, password)
+        text = msg.as_string()
+        server.sendmail(from_email, to_email, text)
+        server.quit()
+        print("Email sent successfully")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
 
 class PolicyEntity:
     def __init__(self, score) -> None:
@@ -56,6 +82,8 @@ class LeroHelper():
 
         run_args = self.get_run_args()
         for c_idx, chunk in enumerate(lero_chunks):
+            #qihan;add this to show the iteration number
+            print("iteration = ", c_idx+1)
             pool = Pool(pool_num)
             for fp, q in chunk:
                 self.run_pairwise(q, fp, run_args, self.output_query_latency_file, self.output_query_latency_file + "_exploratory", pool)
@@ -166,6 +194,8 @@ if __name__ == "__main__":
                         help="Load the test queries from folder")
     parser.add_argument("--algo", type=str)
     parser.add_argument("--query_num_per_chunk", type=int)
+    # qihan: add iteration
+    parser.add_argument("--iteration_num", type=int)
     parser.add_argument("--output_query_latency_file", metavar="PATH")
     parser.add_argument("--model_prefix", type=str)
     parser.add_argument("--pool_num", type=int)
@@ -204,7 +234,9 @@ if __name__ == "__main__":
             test_queries = read_queries_from_folder(args.test_query_folder)
         print("Read", len(test_queries), "test queries.")
 
-        query_num_per_chunk = args.query_num_per_chunk
+        #query_num_per_chunk = args.query_num_per_chunk
+        #qihan: modify this to use all train query in one iteration
+        query_num_per_chunk = len(queries)
         print("query_num_per_chunk:", query_num_per_chunk)
 
         model_prefix = None
@@ -216,6 +248,19 @@ if __name__ == "__main__":
         if args.topK is not None:
             topK = args.topK
         print("topK", topK)
+
+        iteration_num = 100
+        if args.iteration_num is not None:
+            iteration_num = args.iteration_num
+
+        # expand queries to iteration_num times
+        queries = queries * iteration_num
         
         helper = LeroHelper(queries, query_num_per_chunk, output_query_latency_file, test_queries, model_prefix, topK)
         helper.start(pool_num)
+
+        send_email("Lero Experiment", "The experiment of tpch static finished!", "xxx@qq.com")
+
+# usage
+#python train_model_static.py --query_folder /mydata/Lero-on-PostgreSQL/imdb_assorted_3_train_set --test_query_folder /mydata/Lero-on-PostgreSQL/imdb_assorted_3_test_set --algo lero --output_query_latency_file lero_imdb_assorted3.log --model_prefix imdb_test_model --topK 3
+#python train_model_static.py --query_folder /mydata/Lero-on-PostgreSQL/tpch_assorted_train_set --test_query_folder /mydata/Lero-on-PostgreSQL/tpch_assorted_test_set --algo lero --output_query_latency_file lero_tpch_assorted.log --model_prefix tpch_test_model --topK 3
