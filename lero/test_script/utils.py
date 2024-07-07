@@ -152,7 +152,7 @@ def do_run_query(sql, query_name, run_args, latency_file, write_latency_file = T
             # 3. run current query 
             run_start = time()
             try:
-                _, latency_json = run_query("EXPLAIN (ANALYZE, TIMING, VERBOSE, COSTS, SUMMARY, FORMAT JSON) " + sql, run_args, run_args,use_switch_db, use_second_db)
+                _, latency_json = run_query("EXPLAIN (ANALYZE, TIMING, VERBOSE, COSTS, SUMMARY, FORMAT JSON) " + sql, run_args,use_switch_db, use_second_db)
                 latency_json = latency_json[0][0]
                 if len(latency_json) == 2:
                     # remove bao's prediction
@@ -160,7 +160,7 @@ def do_run_query(sql, query_name, run_args, latency_file, write_latency_file = T
             except Exception as e:
                 if  time() - run_start > (TIMEOUT / 1000 * 0.9):
                     # Execution timeout
-                    _, latency_json = run_query("EXPLAIN (VERBOSE, COSTS, FORMAT JSON, SUMMARY) " + sql, run_args, run_args,use_switch_db, use_second_db)
+                    _, latency_json = run_query("EXPLAIN (VERBOSE, COSTS, FORMAT JSON, SUMMARY) " + sql, run_args,use_switch_db, use_second_db)
                     latency_json = latency_json[0][0]
                     if len(latency_json) == 2:
                         # remove bao's prediction
