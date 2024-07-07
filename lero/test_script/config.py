@@ -3,8 +3,10 @@ PORT = 5432
 HOST = "localhost"
 USER = "qihan"
 # PASSWORD = "postgres"
-DB = "imdbload"
+DB = "postgres"
+DB2 = "tpch1load"
 CONNECTION_STR = "dbname=" + DB + " user=" + USER + " host=" + HOST
+NEW_CONNECTION_STR = "dbname=" + DB2 + " user=" + USER + " host=" + HOST
 TIMEOUT = 512000
 # [important]
 # the data directory of your Postgres in which the database data will live 
