@@ -10,8 +10,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def send_email(subject, body, to_email):
-    from_email = "2453939195@qq.com"
-    password = "rsceesnkwjhydiee"
+    from_email = "xxx@qq.com"
+    password = "xxx"
 
     msg = MIMEMultipart()
     msg['From'] = from_email
@@ -267,4 +267,4 @@ if __name__ == "__main__":
         helper = LeroHelper(queries, query_num_per_chunk, output_query_latency_file, test_queries, model_prefix, topK)
         helper.start(pool_num)
 
-        send_email("Lero Experiment", "The experiment of tpch switching db finished!", "2453939195@qq.com")
+        send_email("Lero Experiment", "The experiment of tpch switching db finished!", "xxx@qq.com")
